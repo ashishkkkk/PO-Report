@@ -1,0 +1,14 @@
+# Maven
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Application Output & Logs
+*.log
+output.xlsx
+sap_export.txt
+sap_debug_log.txt
+sap_script*.vbs
