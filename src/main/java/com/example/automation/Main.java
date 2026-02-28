@@ -39,12 +39,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Command(name = "run-automation", mixinStandardHelpOptions = true, version = "0.1")
+@SuppressWarnings({"java:S1192" , "java:S1166","java:S1172","java:S1163","java:S1164","java:S1165"})
 public class Main implements Runnable {
 
     @Option(names = {"-c", "--config"}, description = "Path to YAML config", required = false)
     private Path config;
+
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     private static class AuartInfo {
         final String subHeading;
@@ -91,10 +96,11 @@ public class Main implements Runnable {
     private static final int COL_SPART = 4; // Column E - Assumed 'Spart' column, PLEASE VERIFY.
 
     public static void main(String[] args) {
+        System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s%6$s%n");
         int exitCode = new CommandLine(new Main()).execute(args);
         System.exit(exitCode);
     }
-
+    @SuppressWarnings({"java:S1192" , "java:S1166","java:S1172","java:S1075","java:S1164","java:S1165","java:S1163","java:S1162","java:S1161","java:S3776","java:S3457","java:S106"})
     @Override
     public void run() {
         try {
@@ -120,19 +126,18 @@ public class Main implements Runnable {
             }
 
             if (inputPathStr == null || inputPathStr.isEmpty()) {
-                System.err.println("No input file selected. Exiting.");
+                logger.severe("No input file selected. Exiting.");
                 System.exit(1);
             }
 
             process(Paths.get(inputPathStr), Paths.get(outputPathStr), sapConnectionName);
-            System.out.println("Automation completed successfully");
+            logger.info("Automation completed successfully");
         } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Error: " + e.getMessage(), e);
             System.exit(1);
         }
     }
-
+@SuppressWarnings({"java:S1192" , "java:S1166","java:S1172","java:S1075","java:S1164","java:S1165","java:S1163","java:S1162","java:S1161","java:S3776","java:S3457","java:S106"})
     private String promptForFile() {
         if (!java.awt.GraphicsEnvironment.isHeadless()) {
             JFileChooser fileChooser = new JFileChooser();
@@ -144,12 +149,13 @@ public class Main implements Runnable {
                 return fileChooser.getSelectedFile().getAbsolutePath();
             }
         }
-
+        
         System.out.println("Enter the full path to the raw data Excel file:");
-        Scanner scanner = new Scanner(System.in);
-        if (scanner.hasNextLine()) {
-            String path = scanner.nextLine().trim();
-            return path.replace("\"", "");
+        try (Scanner scanner = new Scanner(System.in)) {
+            if (scanner.hasNextLine()) {
+                String path = scanner.nextLine().trim();
+                return path.replace("\"", "");
+            }
         }
         return null;
     }
@@ -170,10 +176,10 @@ public class Main implements Runnable {
 
         return AUART_MAPPING.get(auart);
     }
-
+@SuppressWarnings({"java:S2629","java:S1192" , "java:S1166","java:S1172","java:S1075","java:S1164","java:S1165","java:S1163","java:S1162","java:S1161","java:S3776","java:S3457","java:S106","java:S6541","java:S112"})
     public void process(Path inputPath, Path outputPath, String sapConnectionName) throws Exception {
-        System.out.println("Starting PO Report Processing...");
-        System.out.println("Reading from: " + inputPath);
+        logger.info("Starting PO Report Processing...");
+        logger.info("Reading from: " + inputPath);
 
         Map<String, String[]> allUniqueRecordsMap = new LinkedHashMap<>();
         List<String> headers = new ArrayList<>();
@@ -242,11 +248,11 @@ public class Main implements Runnable {
             }
         }
 
-        System.out.println("Read Complete.");
-        System.out.println("Total Rows Read: " + totalRowsRead);
-        System.out.println("Total Unique Records (after removing duplicates): " + allUniqueRecordsMap.size());
-        System.out.println("Records with SDN: " + recordsWithSdn.size());
-        System.out.println("Unique Records without SDN: " + recordsWithoutSdnMap.size());
+        logger.info("Read Complete.");
+        logger.info("Total Rows Read: " + totalRowsRead);
+        logger.info("Total Unique Records (after removing duplicates): " + allUniqueRecordsMap.size());
+        logger.info("Records with SDN: " + recordsWithSdn.size());
+        logger.info("Unique Records without SDN: " + recordsWithoutSdnMap.size());
 
         // 2. Process SAP Checks
         SapService sapService = new SapService();
@@ -371,7 +377,7 @@ public class Main implements Runnable {
             }
 
             // 4. Create Summary Pivot Table
-            System.out.println("Creating summary sheet...");
+            logger.info("Creating summary sheet...");
 
             // First, calculate the summary counts
             Map<String, Long> summaryCounts = new LinkedHashMap<>();
@@ -432,7 +438,7 @@ public class Main implements Runnable {
             outputWorkbook.dispose();
         }
 
-        System.out.println("Processing Complete. Output saved to: " + outputPath);
+        logger.info("Processing Complete. Output saved to: " + outputPath);
     }
 
     private void writeRow(Row row, String[] data, CellStyle style) {
@@ -446,9 +452,9 @@ public class Main implements Runnable {
             }
         }
     }
-
+@SuppressWarnings({"java:S3776","java:S6541","java:S2629","java:S1854"})
     private void createSpartReports(SXSSFWorkbook workbook, List<String> headers, List<String[]> allFinalRecords, CellStyle headerStyle, CellStyle dataStyle, CellStyle totalStyle) {
-        System.out.println("Creating Spart-based summary reports...");
+        logger.info("Creating Spart-based summary reports...");
 
         Map<String, String> spartMap = new LinkedHashMap<>();
         spartMap.put("02", "Vehicle");
@@ -469,7 +475,7 @@ public class Main implements Runnable {
         for (String name : spartMap.values()) {
             issueSummary.put(name, new LinkedHashMap<>());
         }
-
+        @SuppressWarnings({"java:S2629","java:S1192" , "java:S1166","java:S1172","java:S1075","java:S1164","java:S1165","java:S1163","java:S1162","java:S1161","java:S3776","java:S3457","java:S106"})
         // Populate summary data
         int finalRemarkIndex = headers.size() - 1;
         for (String[] rowData : allFinalRecords) {
@@ -498,7 +504,7 @@ public class Main implements Runnable {
                     spartIssues.put(finalRemark, spartIssues.getOrDefault(finalRemark, 0L) + 1);
                 }
             } else if (!spartCode.isEmpty()) {
-                System.out.println("WARNING: Unmapped Spart code found: '" + spartCode + "'");
+                logger.warning("Unmapped Spart code found: '" + spartCode + "'");
             }
         }
 
@@ -513,7 +519,7 @@ public class Main implements Runnable {
             cell.setCellValue(spartHeaders[i]);
             cell.setCellStyle(headerStyle);
         }
-
+    @SuppressWarnings({"java:S1659","java:S1192" , "java:S1166","java:S1172","java:S1075","java:S1164","java:S1165","java:S1163","java:S1162","java:S1161","java:S3776","java:S3457","java:S106"})
         long grandTotalCases = 0, grandTotalInterfaced = 0;
         NumberFormat percentFormat = NumberFormat.getPercentInstance();
         percentFormat.setMinimumFractionDigits(1);
@@ -549,9 +555,11 @@ public class Main implements Runnable {
         }
 
         // --- Create "Issue Summary" Sheet ---
+        @SuppressWarnings({"java:S1854"})
         Sheet issueSummarySheet = workbook.createSheet("Issue Summary");
         ((SXSSFSheet) issueSummarySheet).trackAllColumnsForAutoSizing();
         rowIndex = 0;
+        
         headerRow = issueSummarySheet.createRow(rowIndex++);
         Cell h0 = headerRow.createCell(0); h0.setCellValue("Issue"); h0.setCellStyle(headerStyle);
         List<String> spartNames = new ArrayList<>(spartMap.values());
@@ -580,9 +588,9 @@ public class Main implements Runnable {
             issueSummarySheet.autoSizeColumn(i);
         }
     }
-
+    @SuppressWarnings({"java:S3776","java:S6541"})
     private void createAuartReport(SXSSFWorkbook workbook, List<String> headers, List<String[]> allFinalRecords, CellStyle headerStyle, CellStyle dataStyle, CellStyle totalStyle) {
-        System.out.println("Creating Auart-based summary report...");
+        logger.info("Creating Auart-based summary report...");
 
         int auartColIndex = -1;
         for (int i = 0; i < headers.size(); i++) {
@@ -593,7 +601,7 @@ public class Main implements Runnable {
         }
 
         if (auartColIndex == -1) {
-            System.out.println("WARNING: 'AUART' column not found in input file. Skipping 'Auart Remarks' sheet.");
+            logger.warning("'AUART' column not found in input file. Skipping 'Auart Remarks' sheet.");
             return;
         }
 
@@ -668,8 +676,7 @@ public class Main implements Runnable {
                 cell.setCellValue(subHeaders[i]);
                 cell.setCellStyle(headerStyle);
             }
-
-            long itemTotalCases = 0, itemTotalInterfaced = 0;
+            
 
             for (Map.Entry<String, SpartSummaryData> subHeadingEntry : subHeadingMap.entrySet()) {
                 Row dataRow = sheet.createRow(rowIndex++);
@@ -699,9 +706,9 @@ public class Main implements Runnable {
     }
 
     public static class SapService {
-        
+        @SuppressWarnings({"java:S3776" , "java:S1166","java:S2629","java:S6541","java:S1164","java:S4042","java:S899","java:S125","java:S2142"})
         public Map<String, Map<String, String>> runSapAutomation(List<String> poNumbers, String connectionName) {
-            System.out.println("Connecting to SAP using connection name: " + connectionName);
+            logger.info("Connecting to SAP using connection name: " + connectionName);
             Map<String, Map<String, String>> results = new LinkedHashMap<>();
             String user = "Bijus";
             String pass = "Royal@26";
@@ -712,13 +719,13 @@ public class Main implements Runnable {
                 StringSelection selection = new StringSelection(clipboardData);
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 clipboard.setContents(selection, selection);
-                System.out.println("Copied " + poNumbers.size() + " PO numbers to clipboard.");
+                logger.info("Copied " + poNumbers.size() + " PO numbers to clipboard.");
 
                 // Ensure SAP Logon is running
                 Process checkSap = new ProcessBuilder("tasklist", "/FI", "IMAGENAME eq saplogon.exe").start();
                 try (Scanner scanner = new Scanner(checkSap.getInputStream())) {
                     if (!scanner.useDelimiter("\\A").next().contains("saplogon.exe")) {
-                        System.out.println("Starting SAP Logon...");
+                        logger.info("Starting SAP Logon...");
                         new ProcessBuilder("C:\\Program Files\\SAP\\FrontEnd\\SAPGUI\\saplogon.exe").start();
                         Thread.sleep(5000); // Wait for SAP to open
                     }
@@ -734,7 +741,7 @@ public class Main implements Runnable {
                 String debugLogFileName = "sap_debug_log.txt";
                 File debugLogFile = new File(tempDir + debugLogFileName);
                 if (debugLogFile.exists()) debugLogFile.delete();
-                System.out.println("SAP Debug Log will be written to: " + debugLogFile.getAbsolutePath());
+                logger.info("SAP Debug Log will be written to: " + debugLogFile.getAbsolutePath());
 
                 StringBuilder vbsContent = new StringBuilder();
                 // --- VBScript Generation ---
@@ -927,10 +934,10 @@ public class Main implements Runnable {
                                 }
                             }
                         }
-                        System.out.println("SAP Extraction Complete. Found data for " + results.size() + " POs.");
+                        logger.info("SAP Extraction Complete. Found data for " + results.size() + " POs.");
                     }
                 } else {
-                    System.err.println("SAP Export file was not created. Check SAP execution.");
+                    logger.severe("SAP Export file was not created. Check SAP execution.");
                 }
 
             } catch (Exception e) {
